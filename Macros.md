@@ -38,3 +38,7 @@ pub fn some_name(input: TokenStream) -> TokenStream {
 When creating procedural macros, the definitions must reside in their own crate with a special crate type. `some_attribute` is a placeholder for using a specific macro.
 
 The function that defines a procedural macro takes a TokenStream as an input and produces a TokenStream as an output. The TokenStream type is defined by the proc_macro crate that is included with Rust and represents a sequence of tokens. This is the core of the macro: the source code that the macro is operating on makes up the input TokenStream, and the code the macro produces is the output TokenStream. The function also has an attribute attached to it that specifies which kind of procedural macro we’re creating. We can have multiple kinds of procedural macros in the same crate.
+
+use `#[derive(Debug)]` because Debug trait does not have default implimentation for method `fmt`, which is impossible if your stuct is like `{a: i32, b: i32, ... (unknown vars)}`. But macros can do that.
+
+At the time of this writing, procedural macros need to be in their **own crate**.
