@@ -1,35 +1,17 @@
-use std::path;
-use structopt::StructOpt;
-use std::io::{self, BufReader};
-use std::io::prelude::*;
-use std::fs::File;
-use failure::ResultExt;
 use exitfailure::ExitFailure;
+use xd::*;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "xd", about = "An toy implementation of Linux command xxd to view the content of a file in Hex.")]
-struct Opt {
-    #[structopt(short, long, help = "turn colorization on")]
-    color_on: bool,
-
-    #[structopt(short, long, default_value = "128", help = "stop after <length> bytes")]
-    length: usize,
-
-    #[structopt(parse(from_os_str))]
-    input_file: path::PathBuf,
-
-}
 fn main() -> Result<(), ExitFailure> {
-    let opt = Opt::from_args();
-    println!("File name : {:#?}", opt.input_file);
-    let f = File::open(opt.input_file)?;
-    let mut f = BufReader::new(f);
+    // phare the argument and figure out the filename
+    let opt = Opt::new();
+    let file_name = opt.get_file_name();
+    println!("File name : {:#?}", file_name);
+
     let mut buf = vec![];
     let mut line = [0u8; 16];
-    let total_len = f.read_to_end(&mut buf)?;
-    let mut cnt = 0;
-    let mut idx = 0;
-    for s in buf.bytes() {
+    let total_len = get_content(file_name, &mut buf)?;
+    let (mut cnt, mut idx) = (0, 0);
+    for byte in buf.into_iter() {
         if cnt == 16 {
             print!("    ");
             for &i in line.iter() {
@@ -45,7 +27,7 @@ fn main() -> Result<(), ExitFailure> {
             print!("{:08x}    ", idx);
             idx += 16;
         }
-        let c = s.unwrap();
+        let c = byte;
         line[cnt] = c;
         print!(" {:02x}", c);
         cnt += 1;
