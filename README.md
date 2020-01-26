@@ -1,5 +1,5 @@
 # xd
-A little toy to preview a hex dump of a given file, just like xxd 
+A little toy written in Rust to preview a hex dump of a given file, just like xxd 
 
 ## Compile
 
@@ -55,6 +55,17 @@ the binary is in the `target/release`.
 3. Commit your changes (`git commit -am 'Add some fooBar'`)
 4. Push to the branch (`git push origin feature/fooBar`)
 5. Create a new Pull Request
+
+## Contributors
+
+<a href="https://github.com/Ainevsia/xd/graphs/contributors">
+    <img src="https://contributors-img.firebaseapp.com/image?repo=Ainevsia/xd" />
+</a>
+
+Made with [contributors-img](https://contributors-img.firebaseapp.com).
+
 ## License
 
-MIT © Ainevsia
+**xd** © [Ainevsia](https://github.com/Ainevsia/), Released under the [MIT](./LICENSE) License.
+
+Authored and maintained by DIYgod with help from contributors ([list](https://github.com/Ainevsia/xd/contributors)).
