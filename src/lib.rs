@@ -41,106 +41,73 @@ impl Opt {
     }
 }
 
-pub fn get_content(file_name: &path::Path, buf: &mut Vec<u8>) -> Result<usize, ExitFailure>
+pub fn open_reader(file_name: &path::Path) -> Result<BufReader<File>, ExitFailure>
 {
     Ok(
         BufReader::new(
             File::open(file_name)?
-        ).read_to_end(buf)?
+        )
     )
 }
 
-pub fn print_hex(buf: &Vec<u8>, len: Option<usize>) {
-    let (mut cnt, mut idx) = (0, 0);
-    let mut line = [0u8; 16];
-    let len = match len {
-        Some(len) => len,
-        None => std::usize::MAX,
+pub fn print_hex(reader: impl Read, len: Option<usize>, color: bool) -> Result<(), ExitFailure> {
+    let mut reader: Box<dyn Read> = match len {
+        Some(len) => Box::new(reader.take(len as u64)),
+        None => Box::new(reader),
     };
+    let mut buf = [0u8; 16];
     let mut printed = 0;
 
-    for &byte in buf.iter() {
-        if cnt == 16 {  // one line of hex end, print corresponding chars
-            print!("    ");
-            for &i in line.iter() {
-                if i >= 0x20 && i <= 0x7e { print!("{}", i as char) }
-                else { print!(".") }
-            }
-            print!("\n");
-            cnt = 0;
-        } else if cnt == 8 {    // middle of the hex, add one blank space
-            print!(" ");
+    loop {
+        let len = reader.read(&mut buf)?;
+        if len == 0 {
+            break;
         }
-        if cnt == 0 {   // start a new line
-            print!("{:08x}    ", idx);
-            idx += 16;
-        }
-        line[cnt] = byte;
-        print!(" {:02x}", byte);
-        cnt += 1;
-        printed += 1;
-        if printed >= len { break }
-    }
 
-    // print the remaing chars
-    if cnt < 8 { print!(" ") }
-    for _ in 0..16 - cnt { print!("   ") }
-    print!("    ");
-    for i in 0..cnt {
-        let c = line[i];
-        if c >= 0x20 && c <= 0x7e { print!("{}", c as char) }
-        else { print!(".") }
+        // start a new line
+        if color {
+            print!("{}", format!("{:08x}    ", printed).cyan());
+        } else {
+            print!("{:08x}    ", printed);
+        }
+        printed += len;
+
+        for i in 0..16 {
+            if i == 8 { // middle of the hex, add one blank space
+                print!(" ");
+            }
+            if i < len {
+                // 2-digit hex
+                if color {
+                    print!("{}", format!(" {:02x}", buf[i]).green());
+                } else {
+                    print!(" {:02x}", buf[i]);
+                }
+            } else {
+                print!("   "); // placeholder
+            }
+        }
+
+        // one line of hex end, print corresponding chars
+        print!("    ");
+        for &i in &buf[0..len] {
+            let ascii = if i >= 0x20 && i <= 0x7e { i as char } else { '.' };
+            if color {
+                print!("{}", format!("{}", ascii).blue());
+            } else {
+                print!("{}", ascii);
+            }
+        }
+        println!();
     }
 
     // finish summary
-    let length = idx - 16 + cnt;
-    println!("\n{:08x}", length);
-    println!("total length : {:#?} bytes", length);
-}
-
-pub fn print_hex_color(buf: &Vec<u8>, len: Option<usize>) {
-    let (mut cnt, mut idx) = (0, 0);
-    let mut line = [0u8; 16];
-    let len = match len {
-        Some(len) => len,
-        None => std::usize::MAX,
-    };
-    let mut printed = 0;
-    for &byte in buf.iter() {
-        if cnt == 16 {  // one line of hex end, print corresponding chars
-            print!("    ");
-            for &i in line.iter() {
-                if i >= 0x20 && i <= 0x7e { print!("{}", format!("{}", i as char).blue()) }
-                else { print!("{}", ".".blue()) }
-            }
-            print!("\n");
-            cnt = 0;
-        } else if cnt == 8 {    // middle of the hex, add one blank space
-            print!(" ");
-        }
-        if cnt == 0 {   // start a new line
-            print!("{}", format!("{:08x}    ", idx).cyan());
-            idx += 16;
-        }
-        line[cnt] = byte;
-        print!("{}", format!(" {:02x}", byte).green());
-        cnt += 1;
-        printed += 1;
-        if printed >= len { break }
+    if color {
+        println!("{}", format!("{:08x}", printed).cyan());
+    } else {
+        println!("{:08x}", printed);
     }
+    println!("total length : {:#?} bytes", printed);
 
-    // print the remaing chars
-    if cnt < 8 { print!(" ") }
-    for _ in 0..16 - cnt { print!("   ") }
-    print!("    ");
-    for c in 0..cnt {
-        let c = line[c];
-        if c >= 0x20 && c <= 0x7e { print!("{}", format!("{}", c as char).blue()) }
-        else { print!("{}", ".".blue()) }
-    }
-
-    // finish summary
-    let length = idx - 16 + cnt;
-    println!("{}", format!("\n{:08x}", length).cyan());
-    println!("total length : {:#?} bytes", length);
+    Ok(())
 }
