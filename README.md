@@ -1,6 +1,9 @@
-# xd
-A little toy written in Rust to preview a hex dump of a given file, just like xxd 
+<h1 align="center">xd</h1>
 
+> A little toy written in Rust to preview a hex dump of a given file, just like xxd 
+
+[![Build Status](https://travis-ci.org/Ainevsia/xd.svg?branch=master)](https://travis-ci.org/Ainevsia/xd)
+[![LICENSE](https://img.shields.io/github/license/Ainevsia/xd)](./LICENSE)
 ## Compile
 
 First, install [Rust](https://www.rust-lang.org/tools/install) (using the recommended rustup installation method) and then clone this repository:
